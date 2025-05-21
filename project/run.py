@@ -1,11 +1,16 @@
+import sys
+import os
+
+# Добавляем путь к корню проекта, чтобы 'app' был виден
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 try:
     from app import create_app, db
     from app.models import User, Course, Module, Enrollment, Assessment, Feedback, create_triggers
 except ImportError:
     print("ERROR: Не удалось импортировать необходимые модули.")
     print("Убедитесь, что все зависимости установлены:")
-    print("pip install flask flask_sqlalchemy flask_bcrypt flask_jwt_extended flask_migrate")
-    import sys
+    print("pip install flask flask_sqlalchemy flask_bcrypt flask_jwt_extended flask_migrate flask_cors")
     sys.exit(1)
 
 app = create_app()
@@ -14,7 +19,7 @@ if __name__ == '__main__':
     with app.app_context():
         try:
             db.create_all()  # Создание таблиц
-            create_triggers()  # Создание триггеров
+            # create_triggers()  # ← можно включить позже
             print("База данных успешно инициализирована")
             print("Триггеры успешно созданы")
         except Exception as e:

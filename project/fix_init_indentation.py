@@ -1,4 +1,33 @@
-from flask import Flask
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Скрипт для исправления отступов в __init__.py
+"""
+
+import os
+
+def fix_indentation():
+    """Исправляет отступы в файле __init__.py."""
+    init_file_path = os.path.join('app', '__init__.py')
+    
+    if not os.path.exists(init_file_path):
+        print(f"Ошибка: Файл {init_file_path} не найден!")
+        return False
+    
+    print(f"Чтение файла {init_file_path}...")
+    
+    # Читаем содержимое файла
+    with open(init_file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Создаем резервную копию
+    with open(init_file_path + '.bak', 'w', encoding='utf-8') as f:
+        f.write(content)
+        print(f"Резервная копия создана: {init_file_path}.bak")
+    
+    # Заменяем весь файл корректной версией
+    new_content = """from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
@@ -55,7 +84,7 @@ def create_app():
     @click.command('init-db')
     @with_appcontext
     def init_db_command():
-        """Инициализация базы данных."""
+        \"\"\"Инициализация базы данных.\"\"\"
         from .models import create_triggers
         
         # Убедимся, что instance директория существует
@@ -74,3 +103,14 @@ def create_app():
     app.cli.add_command(init_db_command)
     
     return app
+"""
+    
+    # Записываем новое содержимое
+    with open(init_file_path, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    
+    print(f"Файл {init_file_path} успешно обновлен!")
+    return True
+
+if __name__ == '__main__':
+    fix_indentation()

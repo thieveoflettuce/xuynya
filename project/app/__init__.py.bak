@@ -1,14 +1,29 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-from flask_migrate import Migrate
-from flask_cors import CORS
-import os
-import click
-from flask.cli import with_appcontext
+try:
+    from flask import Flask, current_app
+    from flask_bcrypt import Bcrypt
+    from flask_jwt_extended import JWTManager
+    from flask_migrate import Migrate
+    from flask_cors import CORS
+    import click
+    from flask.cli import with_appcontext
+    import os
+    import sqlalchemy
+    from flask_sqlalchemy import SQLAlchemy
+except ImportError:
+    print("ERROR: Отсутствуют необходимые зависимости.")
+    print("Пожалуйста, установите следующие пакеты:")
+    print("pip install flask flask-sqlalchemy sqlalchemy flask-bcrypt flask-jwt-extended flask-migrate flask-cors")
+    import sys
+    sys.exit(1)
 
-# Инициализация объектов
+# Инициализация объектов с правильным импортом
+# Исправляем инициализацию SQLAlchemy для предотвращения ошибки с __all__
+# В зависимости от версии SQLAlchemy используем разные параметры
+try:
+    # Для новых версий SQLAlchemy (2.0+)
+db = SQLAlchemy()
+except TypeError:
+    # Для старых версий SQLAlchemy
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 jwt = JWTManager()
@@ -57,20 +72,20 @@ def create_app():
     def init_db_command():
         """Инициализация базы данных."""
         from .models import create_triggers
-        
+
         # Убедимся, что instance директория существует
-        os.makedirs(os.path.join(app.root_path, '..', 'instance'), exist_ok=True)
-        
+        os.makedirs(os.path.join(current_app.root_path, '..', 'instance'), exist_ok=True)
+
         # Создание таблиц
         db.create_all()
-        
+
         # Создание триггеров
         try:
             create_triggers()
             click.echo('База данных и триггеры успешно инициализированы.')
         except Exception as e:
             click.echo(f'Ошибка при создании триггеров: {e}')
-    
+
     app.cli.add_command(init_db_command)
-    
+
     return app

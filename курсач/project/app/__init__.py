@@ -4,10 +4,11 @@ try:
     from flask_bcrypt import Bcrypt
     from flask_jwt_extended import JWTManager
     from flask_migrate import Migrate
+    from flask_cors import CORS
 except ImportError:
     print("ERROR: Отсутствуют необходимые зависимости.")
     print("Пожалуйста, установите следующие пакеты:")
-    print("pip install flask flask-sqlalchemy flask-bcrypt flask-jwt-extended flask-migrate")
+    print("pip install flask flask-sqlalchemy flask-bcrypt flask-jwt-extended flask-migrate flask-cors")
     import sys
     sys.exit(1)
 
@@ -24,12 +25,14 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'supersecretkey'
     app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 86400  # Токен действителен 24 часа
 
     # Инициализация
     db.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
     migrate = Migrate(app, db)
+    CORS(app)  # Включаем поддержку CORS для всех маршрутов
 
     # Регистрация маршрутов
     from .auth import auth_bp
@@ -37,5 +40,14 @@ def create_app():
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(course_bp, url_prefix='/api')
+
+    # Добавляем обработку ошибок
+    @app.errorhandler(404)
+    def not_found(error):
+        return {'message': 'Resource not found'}, 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return {'message': 'Internal server error'}, 500
 
     return app

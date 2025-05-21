@@ -427,15 +427,10 @@ class Notification(db.Model):
 # Для SQLite триггеры нужно создавать с помощью DDL после создания таблиц
 # Этот код будет выполнен при инициализации базы данных
 def create_triggers():
-    db.session.execute(text("""
+    trigger_sql = """
     DROP TRIGGER IF EXISTS assessment_insert_trigger;
-    """))
-
-    db.session.execute(text("""
     DROP TRIGGER IF EXISTS assessment_update_trigger;
-    """))
 
-    db.session.execute(text("""
     CREATE TRIGGER assessment_insert_trigger
     AFTER INSERT ON assessments
     FOR EACH ROW
@@ -453,9 +448,7 @@ def create_triggers():
         WHERE user_id = NEW.user_id
         AND course_id = (SELECT course_id FROM modules WHERE id = NEW.module_id);
     END;
-    """))
 
-    db.session.execute(text("""
     CREATE TRIGGER assessment_update_trigger
     AFTER UPDATE ON assessments
     FOR EACH ROW
@@ -473,7 +466,7 @@ def create_triggers():
         WHERE user_id = NEW.user_id
         AND course_id = (SELECT course_id FROM modules WHERE id = NEW.module_id);
     END;
-    """))
-
+    """
+    db.session.execute(trigger_sql)
     db.session.commit()
 
